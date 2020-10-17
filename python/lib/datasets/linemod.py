@@ -13,7 +13,7 @@ from torchvision import transforms
 
 
 
-
+# Hybrid Poseのプログラムを参考に記述
 class LinemodDataset(Dataset):
     def __init__(self, object_name='all'):
 

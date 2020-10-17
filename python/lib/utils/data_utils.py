@@ -96,6 +96,11 @@ def read_translation(filename):
 
 
 class LineModDataSet(Dataset):
+    """LineMod DataSetを操作するためのモジュール
+
+    モジュール内のデータは全て Pandas DataFrame に統一する。
+
+    """
     def __init__(self, object_name='all'):
         self = initializer(self,
                            base_dir=cfg.LINEMOD_DIR,
@@ -106,6 +111,26 @@ class LineModDataSet(Dataset):
                                      os.listdir(os.path.join(self.base_dir, object_name, 'data')))))
             self.lengths[object_name] = length
             self.total_length += length
+
+
+    def __setitem__(self):
+        """
+        """
+
+        """与えられたベースディレクトリ内にあるディレクトリ名を読み出す関数
+        """
+        dir_pathes = [f for f in base_dir if os.path.isdir(os.path.join(base_dir, f))]
+
+        # dir_pathes の image ディレクトリから画像パスを読み込む
+        for dir_path in dir_pathes:
+            print('{} のimage ディレクトリから画像パスを読み出します。'.format(dir_path))
+
+            img_paths = os.path.join(cfg.LINEMOD_ORIG_DIR, 'ape'+ os.sep + 'image' + os.sep + '*.{}'.format('jpg')) 
+            img_paths = glob.glob(img_paths, recursive=True)
+            
+            for img_path in img_paths:
+                img = read_rgb_np(img_path)
+                
 
 
     def __getitem__(self, idx):
@@ -298,13 +323,25 @@ def matrix(data):
 
 
 if __name__ == "__main__":
+    import glob
 
+    #base_dir = os.path.join(cfg.LINEMOD_ORIG_DIR, '**' + os.sep)
+    base_dir = os.listdir(cfg.LINEMOD_ORIG_DIR)
+    print(base_dir)
+
+    #print([os.path.basename(p.rstrip(os.sep)) for p in glob.glob(base_dir, recursive=True)])
+    #print([f for f in base_dir if os.path.isdir(os.path.join(cfg.LINEMOD_ORIG_DIR, f))])
+    
+    pth = os.path.join(cfg.LINEMOD_ORIG_DIR, 'ape'+ os.sep + '**'+os.sep + '*.{}'.format('jpg')) 
+
+    img_path = glob.glob(pth, recursive=True)
+    print(img_path)
     # linemod = LineModModelDB()
     # result = linemod.get_corners_3d(cfg.linemod_cls_names[0])
 
-    ape_dataset = LineModDataSet(object_name='ape')
-    result = ape_dataset.__getitem__(1)
-    ape_dataset.save_data(result)
+    #ape_dataset = LineModDataSet(object_name='ape')
+    #result = ape_dataset.__getitem__(1)
+    #ape_dataset.save_data(result)
 
     """
     data = np.array([[-0.113309, 0.991361, -0.0660649],

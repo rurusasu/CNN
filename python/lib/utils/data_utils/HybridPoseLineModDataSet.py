@@ -23,21 +23,21 @@ class HybridPoseLineModDataSet(Dataset):
     ```
     """
     def __init__(self, object_name='all'):
-    # directory setting
-    self.base_dir = cfg.HYBRIDPOSE_LINEMOD_DIR
+        # directory setting
+        self.base_dir = cfg.HYBRIDPOSE_LINEMOD_DIR
 
-    self.image_shape = (480, 640)  # (h, w)
+        self.image_shape = (480, 640)  # (h, w)
 
-    # Use Object
-    self.object_names = cfg.linemod_cls_names
-    if object_name is 'all':
-        pass
-    elif object_name in self.object_names:
-        self.object_names = [object_name]
-    else:
-        raise ValueError('Invaild object name: {}' .format(object_name))
+        # Use Object
+        self.object_names = cfg.linemod_cls_names
+        if object_name is 'all':
+            pass
+        elif object_name in self.object_names:
+            self.object_names = [object_name]
+        else:
+            raise ValueError('Invaild object name: {}' .format(object_name))
 
-    self.lengths = {}
+        self.lengths = {}
         self.total_length = 0
 
         for object_name in self.object_names:
@@ -94,4 +94,4 @@ class HybridPoseLineModDataSet(Dataset):
 
 if __name__ == "__main__":
     ape_dataset = HybridPoseLineModDataSet(object_name='ape')
-    print(ape_d
+    print(ape_dataset[0])

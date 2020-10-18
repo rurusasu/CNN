@@ -5,8 +5,10 @@ sys.path.append('.')
 sys.path.append('..')
 
 from config import cfg
+from PIL import Image
+from data_utils import read_rgb_np, read_rotation, read_translation
 from torch.utils.data import Dataset
-
+from torchvision import transforms
 
 
 class HybridPoseLineModDataSet(Dataset):
@@ -22,6 +24,7 @@ class HybridPoseLineModDataSet(Dataset):
     print(linemod[0])
     ```
     """
+
     def __init__(self, object_name='all'):
         # directory setting
         self.base_dir = cfg.HYBRIDPOSE_LINEMOD_DIR
@@ -91,6 +94,7 @@ class HybridPoseLineModDataSet(Dataset):
             else:
                 local_idx -= self.lengths[object_name]
         raise ValueError('Invalid index: {}'.format(idx))
+
 
 if __name__ == "__main__":
     ape_dataset = HybridPoseLineModDataSet(object_name='ape')

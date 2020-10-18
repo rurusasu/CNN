@@ -19,6 +19,8 @@ cfg.NETWORKS_DIR = os.path.join(cfg.LIB_DIR, 'networks')
 cfg.MODELS_DIR = os.path.join(cfg.DATA_DIR, 'models')
 cfg.REC_DIR = os.path.join(cfg.DATA_DIR, 'record')
 
+cfg.DATAUTILS_DIR = os.path.join(cfg.UTILS_DIR, 'data_utils')
+
 
 def add_path():
     """システムのファイルパスを設定するための関数

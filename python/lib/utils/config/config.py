@@ -8,7 +8,8 @@ cfg = EasyDict()
 Path setting
 """
 
-cfg.UTILS_DIR = os.path.dirname(os.path.abspath(__file__))
+cfg.CONFIG_DIR = os.path.dirname(os.path.abspath(__file__))
+cfg.UTILS_DIR = os.path.dirname(cfg.CONFIG_DIR)
 cfg.LIB_DIR = os.path.dirname(cfg.UTILS_DIR)
 cfg.ROOT_DIR = os.path.dirname(cfg.LIB_DIR)
 cfg.DATA_DIR = os.path.join(cfg.ROOT_DIR, 'data')
@@ -38,6 +39,7 @@ add_path()
 Data path settings
 """
 cfg.LINEMOD_DIR = os.path.join(cfg.DATA_DIR, 'linemod')
+cfg.linemod_config = os.path.join(cfg.CONFIG_DIR, 'default_linemod_cfg.json')
 cfg.LINEMOD_ORIG_DIR = os.path.join(cfg.DATA_DIR, 'linemod_orig')
 cfg.OCCLUSION_LINEMOD_DIR = os.path.join(cfg.DATA_DIR, 'OCCLUSION_LINEMOD')
 cfg.HYBRIDPOSE_LINEMOD_DIR = os.path.join(cfg.DATA_DIR, 'HybridPose_linemod')

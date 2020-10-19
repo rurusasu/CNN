@@ -1,17 +1,20 @@
+import os
+import sys
+sys.path.append('.')
+sys.path.append('..')
+
 import glob
 import numpy as np
+import torch
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from plyfile import PlyData
 from PIL import Image, ImageFile
 from torchvision import transforms
 from torch.utils.data import Dataset
-from utils import save_Excel
-from config import cfg
-import os
-import sys
-sys.path.append('.')
-sys.path.append('..')
+from utils import read_pickle, save_Excel
+from config.config import cfg
+
 
 
 def initializer(self, base_dir, All_object_names, object_name='all'):
@@ -35,12 +38,80 @@ def initializer(self, base_dir, All_object_names, object_name='all'):
     return self
 
 
-def read_rgb_np(rgb_path):
+def read_mask(mask_path: str):
+    """mask 画像を読み込み torch の long 型に変換する関数
+
+    Param
+    -----
+    mask_path (str):
+        読み込む mask 画像のパス
+
+    Return
+    ------
+
+    """
+
+    mask = Image.open(mask_path).convert('1')  # 1 bit で画像を読み込み
+    mask_seg = np.array(mask).astype(np.int32)
+    return torch.from_numpy(mask_seg).long()
+
+
+def read_mask_np(mask_path: str):
+    """mask 画像を読み込み ndarray に変換する関数
+
+    Param
+    -----
+    mask_path (str):
+        読み込む mask 画像のパス
+
+    Return
+    ------
+
+    """
+
+    mask = Image.open(mask_path)
+    mask_seg = np.array(mask).astype(np.int32)
+    return mask_seg
+
+
+def read_rgb(rgb_path: str):
+    """画像を読み込み torch の tensor に変換する関数
+
+    Param
+    -----
+    rgb_path (str):
+        読み込む画像のパス
+
+    Return
+    ------
+    torch_tensor (tensor):
+        float 32 のテンソル
+    """
 
     # PIL は極端に大きな画像など高速にロードできない画像は見過ごす仕様になっている。
     # `LOAD_TRUNCATED_IMAGES` を `True` に設定することで、きちんとロードされるようになる。
     ImageFile.LOAD_TRUNCATED_IMAGES = True
     img = Image.open(rgb_path).convert("RGB")
+    img = np.array(img)
+    return torch.from_numpy(img).float().permute(2, 0, 1)
+
+
+def read_rgb_np(rgb_path: str):
+    """画像を読み込み ndarray に変換する関数
+
+    Param
+    -----
+    rgb_path (str):
+        読み込む画像のパス
+
+    Return
+    ------
+    img (ndarray):
+        uint 8 の numpy 配列
+    """
+
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
+    img = Image.open(rgb_path).convert('RGB')
     img = np.array(img, np.uint8)
     return img
 
@@ -48,8 +119,8 @@ def read_rgb_np(rgb_path):
 def read_rotation(filename):
     """object の回転角度を読み込む関数
 
-    Parame
-    ------
+    Param
+    -----
     filename (str):
         読み込むファイル名
 
@@ -71,8 +142,8 @@ def read_rotation(filename):
 def read_translation(filename):
     """object の並進移動を読み込む関数
 
-    Parame
-    ------
+    Param
+    -----
     filename (str):
         読み込むファイル名
 
@@ -93,180 +164,26 @@ def read_translation(filename):
     return T
 
 
-class LineModDataSet(Dataset):
+def read_vertex(vertex_path: str):
+    """vertex データを pickle ファイルからロードする関数
+
+    Param
+    -----
+    vertex_path (str):
+        読み込む pickle ファイルのパス
+
+    Return
+    ------
+    vertex:
+        pickle ファイルから読み込んだ vertex データ
     """
-    LineMod DataSetからデータを読み出すモジュール
-    使用例：
-
-    ```python
-    # 'ape'のファイルを操作する場合
-    linemod = LineModDataSet(object_name='ape')
-
-    # 辞書配列で格納された、1つ目のデータを読み出す。
-    print(linemod[0])
-    ```
-    """
-
-    def __init__(self, object_name='all'):
-        self = initializer(self,
-                           base_dir=cfg.LINEMOD_DIR,
-                           All_object_names=cfg.linemod_cls_names, object_name=object_name)
-
-        for object_name in self.object_names:
-            length = len(list(filter(lambda x: x.endswith('jpg'),
-                                     os.listdir(os.path.join(self.base_dir, object_name, 'data')))))
-            self.lengths[object_name] = length
-            self.total_length += length
-
-    def __getitem__(self, idx):
-        local_idx = idx
-        for object_name in self.object_names:
-            data_path = os.path.join(
-                self.base_dir, object_name, 'data')  # ロードするデータのパス
-
-            if local_idx < self.lengths[object_name]:
-                # image
-                image_name = os.path.join(
-                    data_path, 'color{}.jpg'.format(local_idx))
-                image = transforms.ToTensor()(Image.open(image_name).convert('RGB'))
-                # pose
-                R_name = os.path.join(
-                    data_path, 'rot{}.rot'.format(local_idx)
-                )
-                R = read_rotation(R_name)
-                # translation
-                t_name = os.path.join(
-                    data_path, 'tra{}.tra'.format(local_idx)
-                )
-                t = read_translation(t_name)
-
-                data = {
-                    'object_name': object_name,
-                    'local_idx': local_idx,
-                    'image_name': image_name,
-                    'image': image,
-                    'R': R,
-                    't': t
-                }
-
-                return data
-
-            else:
-                local_idx -= self.lengths[object_name]
-        raise ValueError('Invalid index: {}'.format(idx))
-
-    def save_data(self, data: dict):
-        for object_name in self.object_names:
-            save_path = os.path.join(self.base_dir, object_name, '{}.xlsx').format(
-                object_name)  # データを保存する場所のパス
-
-            if isinstance(data, dict):
-                if 'R' in data.keys():
-                    R = data['R']
-
-                    R_1 = R[0]
-                    R_2 = R[1]
-                    R_3 = R[2]
-
-                    R = {
-                        'R_1_x': R_1[0], 'R_1_y': R_1[1], 'R_1_z': R_1[2],
-                        'R_2_x': R_2[0], 'R_2_y': R_2[1], 'R_2_z': R_2[2],
-                        'R_3_x': R_3[0], 'R_3_y': R_3[1], 'R_3_z': R_3[2]
-                    }
-
-                    # R の値を、変換後の値で置き換える。
-                    del data['R']  # key 'R' の要素を削除
-                    data.update(R)
-
-                if 't' in data.keys():
-                    t = data['t']
-                    t_x = t[0]
-                    t_y = t[1]
-                    t_z = t[2]
-
-                    t = {'t_x': t_x[0], 't_y': t_y[0], 't_z': t_z[0]}
-
-                    # t の値を、変換後の値で置き換える。
-                    del data['t']
-                    data.update(t)
-
-                save_Excel(save_path, data, img_past=True)
-
-            else:
-                raise ValueError('Invalid Data Format!')
+    vertex = read_pickle(vertex_path)
+    return vertex
 
 
-class HybridPoseLineModDataSet(Dataset):
-    def __init__(self, object_name='all'):
-        self = initializer(self,
-                           base_dir=cfg.HYBRIDPOSE_LINEMOD_DIR,
-                           All_object_names=cfg.linemod_cls_names, object_name=object_name)
-
-        for object_name in self.object_names:
-            length = len(list(filter(lambda x: x.endswith('jpg'),
-                                     os.listdir(os.path.join(self.base_dir, object_name, 'data')))))
-            self.lengths[object_name] = length
-            self.total_length += length
-
-        # pre-load-data into memory
-        self.pts2d = {}
-        self.pts3d = {}
-        self.normals = {}
-        for object_name in self.object_names:
-            # keypoints
-            pts2d_name = os.path.join(
-                self.base_dir, 'keypoints', object_name, 'keypoints_2d.npy')
-
-    def __getitem__(self, idx):
-        local_idx = idx
-        for object_name in self.object_names:
-            data_path = os.path.join(
-                self.base_dir, object_name, 'data')  # ロードするデータのパス
-
-            if local_idx < self.lengths[object_name]:
-                # image
-                image_name = os.path.join(
-                    data_path, 'color{}.jpg'.format(local_idx))
-                image = transforms.ToTensor()(Image.open(image_name).convert('RGB'))
-                # pose
-                R_name = os.path.join(
-                    data_path, 'rot{}.rot'.format(local_idx)
-                )
-                R = read_rotation(R_name)
-                # translation
-                t_name = os.path.join(
-                    data_path, 'tra{}.tra'.format(local_idx)
-                )
-                t = read_translation(t_name)
-
-                data = {
-                    'object_name': object_name,
-                    'local_idx': local_idx,
-                    'image_name': image_name,
-                    'image': image,
-                    'R': R,
-                    't': t
-                }
-
-                return data
-
-            else:
-                local_idx -= self.lengths[object_name]
-        raise ValueError('Invalid index: {}'.format(idx))
-
-
-class PVNet_LineModDataSet(Dataset):
-    def __init__(self, object_name='all'):
-        self = initializer(self,
-                           base_dir=cfg.PVNet_LINEMOD_DIR,
-                           All_object_names=cfg.linemod_cls_names,
-                           object_name=object_name)
-
-        for object_name in self.object_names:
-            length = len(list(filter(lambda x: x.endswith('jpg'),
-                                     os.listdir(os.path.join(self.base_dir, object_name, 'JPEGImages')))))
-            self.lengths[object_name] = length
-            self.total_length += length
+def read_pose(pose_path):
+    pose = read_pickle(pose_path)['RT']
+    return pose
 
 
 class OcclusionLineModDataSet(Dataset):

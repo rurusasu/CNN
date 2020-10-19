@@ -4,16 +4,16 @@ import sys
 sys.path.append('.')
 sys.path.append('..')
 
-from config import cfg
-from PIL import Image
-from data_utils import read_rgb_np, read_rotation, read_translation
-from torch.utils.data import Dataset
 from torchvision import transforms
+from torch.utils.data import Dataset
+from data_utils import read_rgb_np, read_rotation, read_translation
+from PIL import Image
+from config.config import cfg
 
 
 class HybridPoseLineModDataSet(Dataset):
     """
-    HybridPose LineMod DataSetからデータを読み出すモジュール
+    HybridPose で使用された LineMod DataSet を操作するモジュール。
     使用例：
 
     ```python
@@ -57,6 +57,9 @@ class HybridPoseLineModDataSet(Dataset):
             # keypoints
             pts2d_name = os.path.join(
                 self.base_dir, 'keypoints', object_name, 'keypoints_2d.npy')
+
+    def __len__(self):
+        return self.total_length
 
     def __getitem__(self, idx):
         local_idx = idx

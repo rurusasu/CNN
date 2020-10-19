@@ -4,18 +4,17 @@ import sys
 sys.path.append('.')
 sys.path.append('..')
 
-from PIL import Image
-from torch.utils.data import Dataset
-from torchvision import transforms
-from data_utils import read_rgb_np, read_rotation, read_translation
-from config import cfg
 from utils import save_Excel
-
+from config.config import cfg
+from data_utils import read_rgb_np, read_rotation, read_translation
+from torchvision import transforms
+from torch.utils.data import Dataset
+from PIL import Image
 
 
 class LineModDataSet(Dataset):
     """
-    LineMod DataSetからデータを読み出すモジュール
+    LineMod DataSet を操作するモジュール。
     使用例：
 
     ```python
@@ -51,6 +50,9 @@ class LineModDataSet(Dataset):
             self.lengths[object_name] = length
             self.total_length += length
 
+    def __len__(self):
+        return self.total_length
+
     def __getitem__(self, idx):
         local_idx = idx
         for object_name in self.object_names:
@@ -61,7 +63,8 @@ class LineModDataSet(Dataset):
                 # image
                 image_name = os.path.join(
                     data_path, 'color{}.jpg'.format(local_idx))
-                image = transforms.ToTensor()(Image.open(image_name).convert('RGB'))
+                #image = transforms.ToTensor()(Image.open(image_name).convert('RGB'))
+                image = read_rgb_np(image_name)
                 # pose
                 R_name = os.path.join(
                     data_path, 'rot{}.rot'.format(local_idx)

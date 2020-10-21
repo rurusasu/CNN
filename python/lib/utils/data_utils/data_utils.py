@@ -3,39 +3,35 @@ import sys
 sys.path.append('.')
 sys.path.append('..')
 
-import glob
-import numpy as np
+from utils import read_pickle
+from config.config import cfg
 import torch
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
+import numpy as np
+from torch.utils.data import Dataset
 from plyfile import PlyData
 from PIL import Image, ImageFile
-from torchvision import transforms
-from torch.utils.data import Dataset
-from utils import read_pickle, save_Excel
-from config.config import cfg
 
 
+def load_ply_model(model_path: str):
+    """ply データに格納されたモデルの x, y, z 座標を array 配列で読み出す関数
 
-def initializer(self, base_dir, All_object_names, object_name='all'):
-    # directory setting
-    self.base_dir = base_dir
+    Param
+    -----
+    model_path (str):
+        ply データのパス
 
-    self.image_shape = (480, 640)  # (h, w)
+    Return
+    ------
+    array (ndarray):
+        n行3列の array型 行列
+    """
 
-    # Use Object
-    self.object_names = All_object_names
-    if object_name is 'all':
-        pass
-    elif object_name in self.object_names:
-        self.object_names = [object_name]
-    else:
-        raise ValueError('Invaild object name: {}' .format(object_name))
-
-    self.lengths = {}
-    self.total_length = 0
-
-    return self
+    ply = PlyData.read(model_path)
+    data = ply.elements[0].data
+    x = data['x']
+    y = data['y']
+    z = data['z']
+    return np.stack([x, y, z], axis=-1)
 
 
 def read_mask(mask_path: str):
@@ -164,6 +160,25 @@ def read_translation(filename):
     return T
 
 
+def read_transform_dat(transform_dat_path: str):
+    """dat 形式のファイルを読み込む関数
+
+    Param
+    -----
+    transform_dat_path (str):
+        dat ファイルへのパス
+
+    Return
+    ------
+    transform_dat (list):
+        要素に numpy 配列を持った リスト
+    """
+
+    transform_dat = np.loadtxt(transform_dat_path, skiprows=1)[:, 1]
+    transform_dat = np.reshape(transform_dat, newshape=[3, 4])
+    return transform_dat
+
+
 def read_vertex(vertex_path: str):
     """vertex データを pickle ファイルからロードする関数
 
@@ -226,36 +241,24 @@ def matrix(data):
 
 
 if __name__ == "__main__":
+    from config.config import cfg
+
+    pv_linemod_path = cfg.PVNET_LINEMOD_DIR
+    object_name = 'ape'
+    base_dir = os.path.join(pv_linemod_path, object_name)
+
     """
-    import glob
-    import pandas as pd
-    #base_dir = os.path.join(cfg.LINEMOD_ORIG_DIR, '**' + os.sep)
-    base_dir = os.listdir(cfg.LINEMOD_ORIG_DIR)
-    # print(base_dir)
-
-    #print([os.path.basename(p.rstrip(os.sep)) for p in glob.glob(base_dir, recursive=True)])
-    #print([f for f in base_dir if os.path.isdir(os.path.join(cfg.LINEMOD_ORIG_DIR, f))])
-
-    data = {}
-
-    img_paths = os.path.join(
-        cfg.LINEMOD_ORIG_DIR, 'ape' + os.sep + '**'+os.sep + '*.{}'.format('jpg'))
-    img_paths = glob.glob(img_paths, recursive=True)
-    print(img_paths)
-
-    for img_path in img_paths:
-        img = read_rgb_np(img_path)
-        data[img_path] = img
+    # load_ply_model test
+    model_path = os.path.join(base_dir, '{}.ply'.format(object_name))
+    plydata = load_ply_model(model_path)
+    print(plydata)
     """
-    #df = pd.DataFrame()
 
-    # linemod = LineModModelDB()
-    # result = linemod.get_corners_3d(cfg.linemod_cls_names[0])
-
-    ape_dataset = LineModDataSet(object_name='ape')
-    print(ape_dataset[0])
-    #result = ape_dataset.__getitem__(1)
-    # ape_dataset.save_data(result)
+    # read transform dat test
+    dat_path = os.path.join(cfg.LINEMOD_ORIG_DIR,
+                            '{}/transform.dat'.format(object_name))
+    transform_dat = read_transform_dat(dat_path)
+    print(transform_dat)
 
     """
     data = np.array([[-0.113309, 0.991361, -0.0660649],

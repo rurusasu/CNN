@@ -1,3 +1,13 @@
+import os
+import sys
+
+sys.path.append('.')
+sys.path.append('..')
+
+import numpy as np
+
+from config.config import cfg
+
 class ModelAligner(object):
     rotation_transform = np.array([[1., 0., 0.],
                                    [0., -1., 0.],
@@ -23,9 +33,9 @@ class ModelAligner(object):
         self.orig_old_model_path = os.path.join(
             cfg.LINEMOD_ORIG_DIR, '{}/OLDmesh.ply'.format(object_name))
         self.transform_dat_path = os.path.join(
-            cfg.LINEMOD_ORIG, '{}/transform.dat'.format(object_name))
+            cfg.LINEMOD_ORIG_DIR, '{}/transform.dat'.format(object_name))
 
-        self.R_p2w, self.t_p2w, self.s_p2w = seld.setup_p2w_transform()
+        self.R_p2w, self.t_p2w, self.s_p2w = self.setup_p2w_transform()
 
     @staticmethod
     def setup_p2w_transform():
@@ -53,3 +63,15 @@ class ModelAligner(object):
         R_w2c = np.dot(R, self.R_p2w.T)
         t_w2c = -np.dot(R_w2c, self.t_p2w) + self.s_p2w * t
         return np.concatenate([R_w2c, t_w2c[:, None]], 1)
+
+
+    
+
+if __name__ == "__main__":
+    model_aligner = ModelAligner()
+
+    # Setup p2w transform test
+    R_p2w, t_p2w, s_p2w = model_aligner.setup_p2w_transform()
+    print('R_p2w = ', R_p2w,
+          't_p2w = ', t_p2w,
+          's_p2w = ', s_p2w)

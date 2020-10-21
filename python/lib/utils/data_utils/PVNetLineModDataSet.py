@@ -1,13 +1,15 @@
-import json
-from config.config import cfg
-from data_utils import read_rgb_np, read_mask_np
-from torchvision import transforms
-from torch.utils.data import Dataset
 import os
 import sys
 
 sys.path.append('.')
 sys.path.append('..')
+
+
+import json
+from config.config import cfg
+from data_utils import read_rgb_np, read_mask_np
+from torchvision import transforms
+from torch.utils.data import Dataset
 
 
 class PVNetLineModDataSet(Dataset):

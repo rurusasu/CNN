@@ -4,25 +4,7 @@ import numpy as np
 
 import openpyxl
 from openpyxl.drawing.image import Image
-
 import pickle
-
-
-def read_pickle(pkl_path: str):
-    """pickle データをロードする関数
-
-    Param
-    -----
-    pkl_path (str):
-        読み込む pickle データのパス
-
-    Return
-    ------
-    data:
-        pickle から読み込んだデータ
-    """
-    with open(pkl_path, 'rb') as f:
-        return pickle.load(f)
 
 
 def image_past(worksheet, cell_name: str, img_path: str):
@@ -71,6 +53,23 @@ def image_past_AllColumn(worksheet, past_column: str):
         image_past(worksheet, cell_name, img_path)
 
 
+def read_pickle(pkl_path: str):
+    """pickle データをロードする関数
+
+    Param
+    -----
+    pkl_path (str):
+        読み込む pickle データのパス
+
+    Return
+    ------
+    data:
+        pickle から読み込んだデータ
+    """
+    with open(pkl_path, 'rb') as f:
+        return pickle.load(f)
+
+
 def save_Excel(path: str, data: dict, img_past: bool = False):
     """辞書型のデータを Excel ファイル年て保存する関数
 
@@ -116,6 +115,9 @@ def save_Excel(path: str, data: dict, img_past: bool = False):
 
 
 if __name__ == "__main__":
+
+    """
+    # save_Excel test
     path = os.path.dirname(os.path.abspath(__file__))
 
     data = {
@@ -125,3 +127,4 @@ if __name__ == "__main__":
     }
 
     save_Excel(path, data)
+    """

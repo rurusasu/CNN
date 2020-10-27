@@ -45,7 +45,7 @@ cfg.OCCLUSION_LINEMOD_DIR = os.path.join(cfg.DATA_DIR, 'OCCLUSION_LINEMOD')
 cfg.HYBRIDPOSE_LINEMOD_DIR = os.path.join(cfg.DATA_DIR, 'HybridPose_linemod')
 cfg.PVNET_LINEMOD_DIR = os.path.join(cfg.DATA_DIR, 'PVNet_linemod')
 cfg.YCB_DIR = os.path.join(cfg.DATA_DIR, 'YCB')
-
+cfg.TEST_IMAGE_DIR = os.path.join(cfg.DATA_DIR, 'Test_img')
 """
 Class Name
 """

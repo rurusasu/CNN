@@ -174,16 +174,23 @@ if __name__ == "__main__":
 
     from config.config import cfg
 
-    linemod_path = os.path.join(cfg.LINEMOD_DIR)
-    object_name = "ape"
 
-    base_dir = os.path.join(linemod_path, object_name, 'data')
-    idx = 0  # load image number
+    idx = 7 # load image number
 
-    img_path = os.path.join(base_dir, 'color{}.jpg'.format(idx))
-    img = Image.open(img_path)  # image read
-    img = img.convert('L')  # gray scale
+    # ディレクトリ設定
+    ## linemod
+    #base_dir = os.path.join(cfg.LINEMOD_DIR, object_name, 'data')
+    #object_name = "ape"
+    #img_path = os.path.join(base_dir, 'color{}.jpg'.format(idx))
+
+    ## Test_img
+    img_path = os.path.join(cfg.TEST_IMAGE_DIR, 'image{}.jpg'.format(idx))
+
+    # image read
+    img = Image.open(img_path)
+    #img = img.convert('L')  # gray scale
     img = np.array(img)
+    x, y = img.shape[0], img.shape[1]
 
     # laplacian filter test
     lap3 = laplacian(img)
@@ -238,7 +245,7 @@ if __name__ == "__main__":
     plt.title('Sobel dx=0, dy=1'), plt.xticks([]), plt.yticks([])
     """
 
-    """
+
     # オリジナル画像を表示
     plt.subplot(1, 3, 1), plt.imshow(img, cmap='gray')
     plt.title('Original'), plt.xticks([]), plt.yticks([])
@@ -248,7 +255,7 @@ if __name__ == "__main__":
     # LoG filtering を使用した画像を表示
     plt.subplot(1, 3, 3), plt.imshow(log, cmap='gray')
     plt.title('LoG'), plt.xticks([]), plt.yticks([])
-    """
+
 
     # 表示
     plt.show()

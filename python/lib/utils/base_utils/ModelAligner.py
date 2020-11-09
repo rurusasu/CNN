@@ -7,6 +7,7 @@ sys.path.append('..')
 import numpy as np
 
 from config.config import cfg
+from data_utils.data_utils import load_ply_model
 
 class ModelAligner(object):
     rotation_transform = np.array([[1., 0., 0.],
@@ -64,8 +65,8 @@ class ModelAligner(object):
         t_w2c = -np.dot(R_w2c, self.t_p2w) + self.s_p2w * t
         return np.concatenate([R_w2c, t_w2c[:, None]], 1)
 
+    def get_translation_transform
 
-    
 
 if __name__ == "__main__":
     model_aligner = ModelAligner()
